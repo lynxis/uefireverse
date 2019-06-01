@@ -103,15 +103,12 @@ loadinfo load_pe(int fd)
 	EFI_TE_IMAGE_HEADER* te;
 	EFI_IMAGE_NT_HEADERS* nt;
 	EFI_IMAGE_SECTION_HEADER* shdrs;
-	EFI_IMAGE_OPTIONAL_HEADER* oh;
-	EFI_IMAGE_OPTIONAL_HEADER32* oh32=NULL;
-	EFI_IMAGE_OPTIONAL_HEADER64* oh64=NULL;
 	int page_bits;
 	intptr_t base,size;
 	loadinfo ret={};
 
-	if (fstat(fd,&st)!=0) ERRNO_ERROR(fstat);
-	if (!(pebuf=(char*)malloc(st.st_size))) ERRNO_ERROR(malloc);
+	if (fstat(fd, &st) !=0) ERRNO_ERROR(fstat);
+	if (!(pebuf = (char*) malloc(st.st_size))) ERRNO_ERROR(malloc);
 	if (read(fd,pebuf,st.st_size)!=st.st_size) ERRNO_ERROR(read);
 	
 	te=(EFI_TE_IMAGE_HEADER*)pebuf;
@@ -120,27 +117,27 @@ loadinfo load_pe(int fd)
 	
 	page_bits=sysconf(_SC_PAGE_SIZE)-1;
 
-	base=te->ImageBase & ~page_bits;
-	size=(te->ImageBase + (st.st_size + te->StripSize)) | page_bits+1;
+	base = te->ImageBase & ~page_bits;
+	size = (te->ImageBase + (st.st_size - te->StrippedSize)) | page_bits+1;
 
 	if (size<base) ERROR("Invalid ImageBase/SizeOfImage");
 	size-=base;
 	
-	memptr=(char*)mmap((void*)base,size,PROT_EXEC|PROT_READ|PROT_WRITE,MAP_PRIVATE|MAP_ANONYMOUS|(base?MAP_FIXED:0),-1,0);
+	memptr=(char*)mmap((void*)base, size, PROT_EXEC|PROT_READ|PROT_WRITE,MAP_PRIVATE|MAP_ANONYMOUS| (base ? MAP_FIXED : 0),-1,0);
 	if (memptr==MAP_FAILED) ERRNO_ERROR(mmap);
 
 	pbase = base ? (char*) te->ImageBase : memptr;
 
-	shdrs = (EFI_IMAGE_SECTION_HEADER*) (((char*)oh)+nt->FileHeader.SizeOfOptionalHeader);
-	for(int i=0; i < nt->FileHeader.NumberOfSections ; i++)
+	shdrs = (EFI_IMAGE_SECTION_HEADER*) ((void *) (pebuf + sizeof(EFI_TE_IMAGE_HEADER)));
+	for(int i=0; i < te->NumberOfSections ; i++)
 	{
-		if (shdrs[i].VirtualAddress!=shdrs[i].PointerToRawData) ERROR("Section VirtualAddress/file offset mismatch");
-		memcpy(pbase+shdrs[i].VirtualAddress,pebuf+shdrs[i].PointerToRawData,shdrs[i].SizeOfRawData);
+		if (shdrs[i].VirtualAddress != shdrs[i].PointerToRawData) ERROR("Section VirtualAddress/file offset mismatch");
+		memcpy(pbase + shdrs[i].VirtualAddress - te->StrippedSize, pebuf + shdrs[i].PointerToRawData - te->StrippedSize, shdrs[i].SizeOfRawData);
 	}
 	
 	if (!base)
 	{
-		EFI_IMAGE_DATA_DIRECTORY *relocs=&oh(DataDirectory)[EFI_IMAGE_DIRECTORY_ENTRY_BASERELOC];
+		EFI_IMAGE_DATA_DIRECTORY *relocs= &(te->DataDirectory)[0];
 		EFI_IMAGE_BASE_RELOCATION *rel=(EFI_IMAGE_BASE_RELOCATION*)(pbase+relocs->VirtualAddress);
 		EFI_IMAGE_BASE_RELOCATION *end=(EFI_IMAGE_BASE_RELOCATION*)(pbase+relocs->VirtualAddress+relocs->Size);
 
@@ -154,10 +151,10 @@ loadinfo load_pe(int fd)
 		}
 	}
 	
-	ret.mmap_base=memptr;
-	ret.mmap_length=size;
-	ret.image_base=pbase;
-	ret.entry_point=pbase+oh(AddressOfEntryPoint);
+	ret.mmap_base = memptr;
+	ret.mmap_length = size;
+	ret.image_base = pbase;
+	ret.entry_point = pbase + te->AddressOfEntryPoint;
 	free(pebuf);
 	return ret;
 error:
