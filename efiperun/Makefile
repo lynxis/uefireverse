@@ -7,8 +7,8 @@ LDFLAGS=
 LIBS=-lpthread
 JEMALLOC=$(PWD)/../jemalloc
 
-SOURCES=peteloader.c efiperun.cpp efihooks.cpp stubs.cpp debugmodule_example.cpp vast/filesystem.cpp
-OBJECTS=stubs.o peteloader.o efiperun.o efihooks.o debugmodule_example.o vast/filesystem.o jemalloc_custom.a
+SOURCES=teloader.c efiperun.cpp efihooks.cpp stubs.cpp debugmodule_example.cpp vast/filesystem.cpp
+OBJECTS=stubs.o teloader.o efiperun.o efihooks.o debugmodule_example.o vast/filesystem.o jemalloc_custom.a
 OUTPUT=efiperun
 
 all: $(SOURCES) $(OUTPUT)
