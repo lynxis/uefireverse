@@ -5,7 +5,7 @@ CCFLAGS=$(CFLAGS) -std=gnu99
 CXXFLAGS=$(CFLAGS) -std=c++11
 LDFLAGS=
 LIBS=-lpthread
-JEMALLOC=jemalloc-3.6.0
+JEMALLOC=$(PWD)/../jemalloc
 
 SOURCES=peloader.c efiperun.cpp efihooks.cpp stubs.cpp debugmodule_example.cpp vast/filesystem.cpp
 OBJECTS=stubs.o peloader.o efiperun.o efihooks.o debugmodule_example.o vast/filesystem.o jemalloc_custom.a

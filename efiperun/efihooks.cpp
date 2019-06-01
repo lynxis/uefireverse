@@ -103,28 +103,6 @@ typedef struct _EFI_ACPI_SUPPORT_PROTOCOL {
 	void* PublishTables;
 } EFI_ACPI_SUPPORT_PROTOCOL; 
 
-typedef struct __attribute__((packed)) {
-	UINT8 Type;
-	UINT8 SubType;
-	UINT8 Length[2];
-} EFI_DEVICE_PATH_PROTOCOL;
-
-typedef struct {
-	UINT32                   Revision;
-	EFI_HANDLE               ParentHandle;
-	EFI_SYSTEM_TABLE         *SystemTable;
-	EFI_HANDLE               DeviceHandle;
-	EFI_DEVICE_PATH_PROTOCOL *FilePath;
-	VOID                     *Reserved;
-	UINT32                   LoadOptionsSize;
-	VOID                     *LoadOptions;
-	VOID                     *ImageBase;
-	UINT64                   ImageSize;
-	EFI_MEMORY_TYPE          ImageCodeType;
-	EFI_MEMORY_TYPE          ImageDataType;
-	VOID*                    Unload;
-} EFI_LOADED_IMAGE_PROTOCOL;
-
 typedef struct {
 	void* data;
 	UINTN data_size;
