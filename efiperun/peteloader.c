@@ -131,6 +131,7 @@ loadinfo load_pe(int fd)
 	shdrs = (EFI_IMAGE_SECTION_HEADER*) ((void *) (pebuf + sizeof(EFI_TE_IMAGE_HEADER)));
 	for(int i=0; i < te->NumberOfSections ; i++)
 	{
+		fprintf(stderr, "vadr 0x%16x\n", shdrs[i].VirtualAddress);
 		if (shdrs[i].VirtualAddress != shdrs[i].PointerToRawData) ERROR("Section VirtualAddress/file offset mismatch");
 		memcpy(pbase + shdrs[i].VirtualAddress - te->StrippedSize, pebuf + shdrs[i].PointerToRawData - te->StrippedSize, shdrs[i].SizeOfRawData);
 	}
